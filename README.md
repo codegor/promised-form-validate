@@ -5,6 +5,7 @@ For Vue.js
 At data() your set form object with fields (properties), every field could be like this: 
 
 structure of fields:
+```javascript
   {
     __name__:{
       val: __def-value__, //then current value
@@ -21,13 +22,16 @@ structure of fields:
       error: '' //reactive for error for input
     }
   }
+```
 
 Example:
+```javascript
 import {validate} from "promised-form-validate";
 
 {....}
     
 data(){
+    // ...
     form: {
         field1: {
             val: '', // use this for v-model for form field
@@ -38,14 +42,17 @@ data(){
             // ... another properties
         }
     }
+    // ...
 },
 methods: {
+    // ...
     send(){
         validate(this.form).then(r => {
             // code for valid result
         });
-    }
+    },
+    // ...
 }
-
+```
 All rules and filters you can see at code at file Validation.js
 
