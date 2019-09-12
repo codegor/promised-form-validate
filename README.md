@@ -5,7 +5,7 @@ For Vue.js
 At data() your set form object with fields (properties), every field could be like this: 
 
 structure of fields:
-```javascript
+```
   {
     __name__:{
       val: __def-value__, //then current value
