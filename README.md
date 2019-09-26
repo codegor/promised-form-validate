@@ -38,7 +38,7 @@ data(){
     form: {
         field1: {
             val: '', // use this for v-model for form field
-            rules: 'require|in:1,2,3,4,5,6',
+            rules: 'require|in:1,2,3,4,5,6', // or you can provide a function which return {r: result [boolean], e: error [string]} or if val it is object, you can check all of properties of val if you replay structure of val object where value of params will be rules
             filters: 'trim',
             error: false, // use this for paste error massage where you want
             label: 'Field1', // you can set label or another field specific data below and use it at form filed in template

@@ -111,6 +111,11 @@ const Validation = {
             err += ('' == err ? '' : '; ') + rule + ': ' + e;
         } else console.error('Validation: rules describe another object, this hasn\'t property for this rule');
       }
+    } else if ('function' == typeof rules) {
+      let {r, e} = rules(att, val, rules, fields); // expected return object = {r: res, e: err}
+      res = !!r;
+      if (false == r)
+        err += ('' == err ? '' : '; ') + e;
     } else {
       let ruls = rules.split('|');
       for (let i in ruls) {
