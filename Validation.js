@@ -7,7 +7,11 @@ const Validation = {
     },
     email: (attrib, val, param, list) => {
       let re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-      if (!re.test(val)) return false; else return true;
+      return re.test(val);
+    },
+    phone: (attrib, val, param, list) => {
+      let re = /^[+]{0,1}[0-9]{1,3}[\s\-]{0,1}[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]{7,14}[\s\#]{0,2}[/0-9]{0,4}$/g;
+      return re.test(val);
     },
     in: (attrib, val, param, list) => {
       return -1 != _.indexOf(param.split(','), val)
@@ -36,13 +40,15 @@ const Validation = {
 
   rules_mess: {
     require: 'The %f_name% field is required',
-    email: 'Please fill in valid email address',
-    in: 'Sorry, you can not use this value',
-    not_in: 'Sorry, you can not use this value',
-    alpha_dash_space: 'Please, choose proper symbols',
-    less: 'Please set less then current',
-    greater: 'Please set greater then current',
-    number: 'Please set a number',
+    email: 'Please fill in %f_name% valid email address',
+    phone: 'Please fill in %f_name% valid phone number',
+    in: 'Sorry, you can not use this value in %f_name%',
+    in_u: 'Sorry, you can not use this value in %f_name%',
+    not_in: 'Sorry, you can not use this value in %f_name%',
+    alpha_dash_space: 'Please, choose proper symbols for %f_name%',
+    less: 'Please set less then current in %f_name%',
+    greater: 'Please set greater then current in %f_name%',
+    number: 'Please set a number in %f_name%',
     _: '',
   },
 

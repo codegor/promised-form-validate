@@ -1,6 +1,6 @@
 {
   "name": "promised-form-validate",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Simple promised form validation. Simply set var for form definition and run validate method and if all ok in then you continue",
   "main": "Validation.js",
   "scripts": {
