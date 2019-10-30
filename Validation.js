@@ -1,5 +1,29 @@
 import _ from 'lodash';
 
+const help = {
+  typeAction(fn){
+    return {
+      undefined(val, param){
+        return fn(0, param);
+      },
+      number(val, param){
+        return fn(val, param);
+      },
+      string(val, param) {
+        return fn(val.length, param);
+      },
+      object(val, param){
+        if(null === val)
+          return fn(val, param);
+        else if(val.hasOwnProperty('length'))
+          return fn(val.length, param);
+        else
+          return fn(Object.getOwnPropertyNames(val).length, param);
+      }
+    };
+  }
+}
+
 const Validation = {
   rules: {
     require: (attrib, val, param, list) => {
@@ -26,10 +50,12 @@ const Validation = {
       return (/^[0-9A-Z_-\s]*$/i).test(val)
     },
     less: (attrib, val, param, list) => {
-      return _.lt(val, param)
+      let a = help.typeAction(_.lt);
+      return a[typeof val](val, param);
     },
     greater: (attrib, val, param, list) => {
-      return _.gt(val, param)
+      let a = help.typeAction(_.gt);
+      return a[typeof val](val, param);
     },
     number: (attrib, val, param, list) => {
       return (/^[0-9]*$/i).test(val)
@@ -46,13 +72,13 @@ const Validation = {
     in_u: 'Sorry, you can not use this value in %f_name%',
     not_in: 'Sorry, you can not use this value in %f_name%',
     alpha_dash_space: 'Please, choose proper symbols for %f_name%',
-    less: 'Please set less then current in %f_name%',
-    greater: 'Please set greater then current in %f_name%',
+    less: 'Please set less then %f_param% in %f_name%',
+    greater: 'Please set greater then %f_param% in %f_name%',
     number: 'Please set a number in %f_name%',
     _: '',
   },
 
-  mess_vars: ['name', 'label'],
+  mess_vars: ['name', 'label', 'param'],
 
   filters: {
     trim: (attrib, val, param, list) => {
@@ -134,7 +160,7 @@ const Validation = {
           let r = this.rules[rule[0]](att, val, rule[1], fields);
           res = res == true ? r : res;
           if (false == r)
-            err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]];
+            err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
         } else console.error("Validation: I don't know about " + rule[0] + " rule...");
       }
     }
