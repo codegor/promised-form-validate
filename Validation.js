@@ -69,7 +69,7 @@ const help = {
 }
 
 const Validation = {
-  errorFormat: 'text', // text | object
+  errorFormat: 'simple', // simple | text | object
   lib: 'own', // own | ext
   validator: {},
   messages: {}, // here you can set your massages for ext lib see https://www.npmjs.com/package/Validator
@@ -160,7 +160,7 @@ const Validation = {
    */
   validate(fields, options) {
     let obj = this;
-    if(options && 'object' == typeof options && options.hasOwnProperty('errorFormat') && _.includes(['text', 'object'], options.errorFormat))
+    if(options && 'object' == typeof options && options.hasOwnProperty('errorFormat') && _.includes(['simple', 'text', 'object'], options.errorFormat))
       this.errorFormat = options.errorFormat;
     if(options && 'object' == typeof options && options.hasOwnProperty('lib') && _.includes(['own', 'ext'], options.lib))
       this.lib = options.lib;
@@ -214,8 +214,10 @@ const Validation = {
               if('object' != typeof err)
                 err = {};
               err[rule] = e;
-            } else
-              err += ('' == err ? '' : ' & ') + rule + ': ' + e;
+            } else{
+              let mes = ('simple' == this.errorFormat) ? e : rule + ': ' + e;
+              err += ('' == err ? '' : ' & ') + mes;
+            }
           }
         } else console.error('Validation: rules describe another object, this hasn\'t property for this rule');
       }
