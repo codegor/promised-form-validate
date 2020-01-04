@@ -228,6 +228,8 @@ const Validation = {
       if('ext' == this.lib){
         let {r, e} = this.validator.checkRules(att, rules);
         res = res == true ? r : res;
+        if (false == r)
+          err += ('' == err ? '' : '; ') + e;
       } else {
         let ruls = rules.split('|');
         for (let i in ruls) {
