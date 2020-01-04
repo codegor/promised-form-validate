@@ -33,6 +33,7 @@ class ValidatorExt extends Validator{
     value = ('undefined' === typeof value) ? '' : value;
 
     let ruls = this.parseItemRules(rules);
+    this.rules = ruls; // for err mes get type
     ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
       let r = this.validate(name, value, rule);
       res = res == true ? r : res;
