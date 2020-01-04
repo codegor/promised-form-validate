@@ -2,6 +2,8 @@ import _ from 'lodash';
 import Validator from 'Validator';
 import messages from "Validator/src/messages";
 
+massages.empty_url = massages.url;
+
 class ValidatorExt extends Validator{
   getMessage(name, rule) {
     // 1) return custom message if defined
@@ -42,6 +44,17 @@ class ValidatorExt extends Validator{
     });
 
     return {r: res, e: err};
+  }
+
+  validateEmptyUrl(name, value) {
+    if (typeof value === 'string') {
+      if(value.trim() !== '')
+        return this.validateUrl(name, value);
+      else
+        return true;
+    }
+
+    return false;
   }
 }
 
