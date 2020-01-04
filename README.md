@@ -30,6 +30,8 @@ At data() your set form object with fields (properties), every field could be li
 # Example:
 ```javascript
 import {validate} from "promised-form-validate";
+//or if you want to use External lib for validation rules Validator (https://www.npmjs.com/package/Validator)
+import {validateExt} from "promised-form-validate";
 
 {....}
     
@@ -60,15 +62,18 @@ methods: {
 All rules and filters you can see at code at file Validation.js
 
 If you want, you can replace your error massage or rules and you can set validate method globally for Vue.js with your error massages. 
-For now your can set any variable in error massages. 
+Your can set any variable in error massages. 
 Default is '%f_name%' key in a message and '%f_label%'. Name gets from field name, like 'field1' from example, label from label field prop if exists. 
 You can replace default variable for error massage, set array of key name, like ['name', 'label', ...].
 
 ```javascript
+import Vue from 'vue';
+import validation from "promised-form-validate";
+
 Vue.use({
   install($Vue){
     // replace
-    validate.rules = {
+    validation.rules = {
       //your rules
       your_rule: (attrib, val, param, list) => {
         // actions
@@ -77,7 +82,7 @@ Vue.use({
     };
     
     // or extend
-    validate.rules = Object.assign(validate.rules, {
+    validation.rules = Object.assign(validate.rules, {
       //your rules
       your_rule: (attrib, val, param, list) => {
         // actions
@@ -86,10 +91,15 @@ Vue.use({
     });
     
     // somethig like that and for rules_mess and mess_vars
-    validate.rules_mess = {
+    validation.rules_mess = {
       rule_name: 'rule_massages, may be with vars like %f_name% or else',
       // ...
     };
+    // or extend
+    validation.rules_mess = Object.assign(validate.rules_mess, {
+      rule_name: 'rule_massages, may be with vars like %f_name% or else',
+      // ...
+    });
     /**
     * in form definition
     * form: {
@@ -106,9 +116,68 @@ Vue.use({
     * }
     * 
     */
-    validate.mess_vars = ['var1', 'var2', 'name']; 
+    validation.mess_vars = ['var1', 'var2', 'name']; 
     
-    $Vue.prototype.validate = validate;
+    $Vue.prototype.$validate = (fields, options) => validation.validate(fields, options);
+  }
+})
+
+```
+
+For now you can use external library [Validator](https://www.npmjs.com/package/Validator) for rules and massages set.
+if you want to set your massages for this lib you can do this:
+
+```javascript
+import Vue from 'vue';
+import validation from "promised-form-validate";
+
+Vue.use({
+  install($Vue){
+    // replace
+    validation.customRules = {
+      //your rules
+      your_rule: (name,value,params) => {
+        // actions
+        return true || false;
+      },
+      // or
+      your_rule_with_mess: {
+        handle(name,value,params) => {
+          // actions
+          return true || false;
+        },
+        message: 'there is error message'
+      }
+    };
+    
+    // somethig like that and for rules_mess. mess_vars doesn't work.
+    validation.messages = {
+      // custom message for based rules
+      required: 'You forgot the :attr field',
+      email: ':attr is not valid',
+      // custom message for specific rule of attribute
+      'receiver.email': 'The receiver email address is not valid'
+    };
+    
+    // you can set custom Names for attribute
+    validation.customNames = { 
+      email: 'Email Address' 
+    };
+    
+    /**
+    * in form definition
+    * form: {
+    *    _name_: {
+    *         val: '', // use this for v-model for form field
+    *         rules: 'require|in:1,2,3,4,5,6',
+    *         filters: 'trim',
+    *         error: false, // use this for paste error massage where you want
+    *     }
+    * }
+    * 
+    */
+    
+    $Vue.prototype.$validate = (fields, options) => validation.validate(fields, Object.assign({lib:'ext'}, ('object' == typeof options ? options : {})));
   }
 })
 

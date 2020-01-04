@@ -1,4 +1,48 @@
 import _ from 'lodash';
+import Validator from 'Validator';
+import messages from "Validator/src/messages";
+
+class ValidatorExt extends Validator{
+  getMessage(name, rule) {
+    // 1) return custom message if defined
+    let msg = this.getCustomMessage(name, rule);
+    if (typeof msg === 'undefined') {
+      let key = this.snakeCase(rule.name);
+
+      // 2) then, use the default message for that rule, and re-test
+      msg = messages[key];
+    }
+
+    // 3) check if the message has subtype
+    if (typeof msg === 'object') {
+      let subtype = this.getDataType(name);
+      msg = messages[key][subtype];
+    }
+
+    return typeof msg === 'undefined' ? '' : msg;
+  }
+  validate(name, rule) {
+    let value = this.getValue(name);
+    let method = this.findRuleMethod(rule);
+
+    // return method.apply(this, [name, value, rule.params])
+    return method.apply(this, [name, value, rule.params])
+  }
+  checkRules(name, rules){
+    let res = true;
+    let err = '';
+
+    let ruls = this.parseItemRules(rules);
+    ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
+      let r = self.validate(name, rule);
+      res = res == true ? r : res;
+      if (false == r)
+        err += ('' == err ? '' : '; ') + this.getErrorMsg(name,rule);
+    });
+
+    return {r: res, e: err};
+  }
+}
 
 const help = {
   typeAction(fn){
@@ -25,6 +69,13 @@ const help = {
 }
 
 const Validation = {
+  errorFormat: 'object', // text | object
+  lib: 'own', // own | ext
+  validator: {},
+  messages: {}, // here you can set your massages for ext lib see https://www.npmjs.com/package/Validator
+  customNames: {}, // here you can set customNames for ext lib see https://www.npmjs.com/package/Validator
+  customRules: {}, // here you can set array of customRules in format name:{handle(name,value,params){}, message: ''} for ext lib see https://www.npmjs.com/package/Validator
+
   rules: {
     require: (attrib, val, param, list) => {
       if (('number' == typeof val && isNaN(val)) || null === val || 'undefined' == typeof val || 0 === val.length || ('object' == typeof val && 0 == Object.getOwnPropertyNames(val).length)) return false; else return true;
@@ -107,9 +158,28 @@ const Validation = {
     }
   }
    */
-  validate(fields) {
+  validate(fields, options) {
     let obj = this;
-    return new Promise(function (resolve, reject) {
+    if(options && 'object' == typeof options && options.hasOwnProperty('errorFormat') && _.includes(['text', 'object'], options.errorFormat))
+      this.errorFormat = options.errorFormat;
+    if(options && 'object' == typeof options && options.hasOwnProperty('lib') && _.includes(['own', 'ext'], options.lib))
+      this.lib = options.lib;
+
+    if('ext' == this.lib){
+      this.validator = new ValidatorExt(this.gerChackedFields(fields), {}, this.messages, this.customNames);
+      if(0 != Object.getOwnPropertyNames(this.customRules).length)
+        for(let i in this.customRules)
+          this.validator.extend(i,
+            ('function' == typeof this.customRules[i] ? this.customRules[i] : (
+              'object' == typeof this.customRules[i] && this.customRules[i].hasOwnProperty('handle') ?
+                this.customRules[i].handle : () => {console.log('RULE ERROR, should be or function of object {handle(){}, message}', i, this.customRules[i])}
+            )),
+            ('object' == typeof this.customRules[i] && this.customRules[i].hasOwnProperty('message')) ?
+              this.customRules[i].message : ''
+            );
+    }
+
+    return new Promise((resolve, reject) => {
       let res = true;
       if ('object' == typeof fields) {
         for (let att in fields) {
@@ -139,8 +209,14 @@ const Validation = {
         if (val.hasOwnProperty(rule)) {
           let {r, e} = this.checkRules(att, val[rule], rules[rule], fields);
           res = res == true ? r : res;
-          if (false == r)
-            err += ('' == err ? '' : '; ') + rule + ': ' + e;
+          if (false == r){
+            if('object' == this.errorFormat) {
+              if('object' != typeof err)
+                err = {};
+              err[rule] = e;
+            } else
+              err += ('' == err ? '' : ' & ') + rule + ': ' + e;
+          }
         } else console.error('Validation: rules describe another object, this hasn\'t property for this rule');
       }
     } else if ('function' == typeof rules) {
@@ -149,27 +225,42 @@ const Validation = {
       if (false == r)
         err += ('' == err ? '' : '; ') + e;
     } else {
-      let ruls = rules.split('|');
-      for (let i in ruls) {
-        let rule = ruls[i].split(':');
-        if ('' == rule[0]) {
-          console.warn('Validation: you have empty validation rules.');
-          break;
+      if('ext' == this.lib){
+        let {r, e} = this.validator.checkRules(att, rules);
+        res = res == true ? r : res;
+      } else {
+        let ruls = rules.split('|');
+        for (let i in ruls) {
+          let rule = ruls[i].split(':');
+          if ('' == rule[0]) {
+            console.warn('Validation: you have empty validation rules.');
+            break;
+          }
+          if (this.rules.hasOwnProperty(rule[0])) {
+            let r = this.rules[rule[0]](att, val, rule[1], fields);
+            res = res == true ? r : res;
+            if (false == r)
+              err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
+          } else console.error("Validation: I don't know about " + rule[0] + " rule...");
         }
-        if (this.rules.hasOwnProperty(rule[0])) {
-          let r = this.rules[rule[0]](att, val, rule[1], fields);
-          res = res == true ? r : res;
-          if (false == r)
-            err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
-        } else console.error("Validation: I don't know about " + rule[0] + " rule...");
       }
     }
+    let shoultUncompres = false
+    if('object' == typeof err) {
+      err = JSON.stringify(err);
+      shoultUncompres = true;
+    }
+
     _.each(this.mess_vars, v => {
       if('name' == v)
         err = err.replace(new RegExp('%f_'+v+'%', "g"), att);
       else if(fields[att].hasOwnProperty(v))
           err = err.replace(new RegExp('%f_'+v+'%', "g"), fields[att][v]);
-    })
+    });
+
+    if(shoultUncompres)
+      err = JSON.parse(err);
+
     return {r: res, e: err};
   },
 
@@ -211,12 +302,17 @@ const Validation = {
     return res;
   }
 
-}
+};
 
 export default {
   ...Validation
 }
 
-export function validate(fields) {
-  return Validation.validate(fields);
+export function validate(fields, options) {
+  return Validation.validate(fields, options);
 }
+
+export function validateExt(fields, options) {
+  return Validation.validate(fields, Object.assign({lib:'ext'}, ('object' == typeof options ? options : {})));
+}
+
