@@ -2,7 +2,7 @@ import _ from 'lodash';
 import Validator from 'Validator';
 import messages from "Validator/src/messages";
 
-massages.empty_url = massages.url;
+messages.empty_url = messages.url;
 
 class ValidatorExt extends Validator{
   getMessage(name, rule) {
