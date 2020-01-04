@@ -69,7 +69,7 @@ const help = {
 }
 
 const Validation = {
-  errorFormat: 'object', // text | object
+  errorFormat: 'text', // text | object
   lib: 'own', // own | ext
   validator: {},
   messages: {}, // here you can set your massages for ext lib see https://www.npmjs.com/package/Validator
