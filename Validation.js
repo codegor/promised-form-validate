@@ -21,20 +21,20 @@ class ValidatorExt extends Validator{
 
     return typeof msg === 'undefined' ? '' : msg;
   }
-  validate(name, rule) {
-    let value = this.getValue(name);
+  validate(name, value, rule) {
     let method = this.findRuleMethod(rule);
 
     // return method.apply(this, [name, value, rule.params])
-    return method.apply(this, [name, value, rule.params])
+    return method.apply(this, [name, value, rule.params]);
   }
-  checkRules(name, rules){
+  checkRules(name, value, rules, fields){
     let res = true;
     let err = '';
+    value = ('undefined' === typeof value) ? '' : value;
 
     let ruls = this.parseItemRules(rules);
     ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
-      let r = this.validate(name, rule);
+      let r = this.validate(name, value, rule);
       res = res == true ? r : res;
       if (false == r)
         err += ('' == err ? '' : '; ') + this.getErrorMsg(name,rule);
@@ -226,7 +226,7 @@ const Validation = {
         err += ('' == err ? '' : '; ') + e;
     } else {
       if('ext' == this.lib){
-        let {r, e} = this.validator.checkRules(att, rules);
+        let {r, e} = this.validator.checkRules(att, val, rules, fields);
         res = res == true ? r : res;
         if (false == r)
           err += ('' == err ? '' : '; ') + e;
