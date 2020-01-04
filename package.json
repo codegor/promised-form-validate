@@ -1,6 +1,6 @@
 {
   "name": "promised-form-validate",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Simple promised form validation. Simply set var for form definition and run validate method and if all ok in then you continue. With rules like Laravel have!",
   "main": "Validation.js",
   "scripts": {

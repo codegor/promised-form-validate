@@ -34,7 +34,7 @@ class ValidatorExt extends Validator{
 
     let ruls = this.parseItemRules(rules);
     ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
-      let r = self.validate(name, rule);
+      let r = this.validate(name, rule);
       res = res == true ? r : res;
       if (false == r)
         err += ('' == err ? '' : '; ') + this.getErrorMsg(name,rule);
