@@ -326,11 +326,13 @@ const Validation = {
       shoultUncompres = true;
     }
 
+    let attFirst = att.split('.');
+    attFirst = att[0];
     _.each(this.mess_vars, v => {
       if('name' == v)
         err = err.replace(new RegExp('%f_'+v+'%', "g"), att);
-      else if(fields[att].hasOwnProperty(v))
-          err = err.replace(new RegExp('%f_'+v+'%', "g"), fields[att][v]);
+      else if(fields[attFirst].hasOwnProperty(v))
+          err = err.replace(new RegExp('%f_'+v+'%', "g"), fields[attFirst][v]);
     });
 
     if(shoultUncompres)
