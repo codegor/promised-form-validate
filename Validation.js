@@ -314,11 +314,12 @@ const Validation = {
       res = !!r;
       if (false == r)
         err += ('' == err ? '' : '; ') + e;
-    } else {
+    } else if ('string' == typeof rules) {
       let {r, e} = this.simpleCheckRules(res, err, att, val, rules, fields);
       res = r;
       err = e;
-    }
+    } else
+      console.error('Validation rule type is unknown for me...', typeof rules, rules, att, val, fields);
 
     let shoultUncompres = false
     if('object' == typeof err) {
