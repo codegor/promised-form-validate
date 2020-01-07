@@ -249,7 +249,7 @@ const Validation = {
     });
   },
 
-  objCheckRules(res, err, att, val, rules, fields, objErr) {
+  objCheckRules(res, err, att, val, rules, fields, objErr, rule) {
     let {r, e} = this.checkRules(att, val, rules, fields, objErr);
     res = res == true ? r : res;
     if (false == r){
@@ -299,12 +299,12 @@ const Validation = {
           if('object' != typeof err)
             err = {};
           for(let i in val){
-            let {r, e} = this.objCheckRules(res, false, att+'['+i+']', val[i], rules[rule], fields, true);
+            let {r, e} = this.objCheckRules(res, false, att+'['+i+']', val[i], rules[rule], fields, true, rule);
             res = r;
             err[i] = e;
           }
         } else if (val.hasOwnProperty(rule)) {
-          let {r, e} = this.objCheckRules(res, err, att+'.'+rule, val[rule], rules[rule], fields, objErr);
+          let {r, e} = this.objCheckRules(res, err, att+'.'+rule, val[rule], rules[rule], fields, objErr, rule);
           res = r;
           err = e;
         } else console.error('Validation: rules describe another object, this hasn\'t property for this rule');
