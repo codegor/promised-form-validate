@@ -327,7 +327,7 @@ const Validation = {
     }
 
     let attFirst = att.split('.');
-    attFirst = att[0];
+    attFirst = attFirst[0];
     _.each(this.mess_vars, v => {
       if('name' == v)
         err = err.replace(new RegExp('%f_'+v+'%', "g"), att);
