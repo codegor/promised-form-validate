@@ -254,9 +254,12 @@ const Validation = {
     res = res == true ? r : res;
     if (false == r){
       if('object' == this.errorFormat || objErr) {
-        if('object' != typeof err)
-          err = {};
-        err[rule] = e;
+        if('*' != rule){
+          if('object' != typeof err)
+            err = {};
+          err[rule] = e;
+        } else
+          err = e;
       } else{
         let mes = ('simple' == this.errorFormat) ? e : rule + ': ' + e;
         err += ('' == err ? '' : ' & ') + mes;
