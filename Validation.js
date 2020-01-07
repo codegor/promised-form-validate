@@ -48,7 +48,7 @@ class ValidatorExt extends Validator{
     // 3) check if the message has subtype
     if (typeof msg === 'object') {
       let subtype = this.getDataType(name);
-      msg = messages[key][subtype];
+      msg = msg[subtype];
     }
 
     return typeof msg === 'undefined' ? '' : msg;
@@ -67,7 +67,7 @@ class ValidatorExt extends Validator{
 
     let ruls = this.parseItemRules(rules);
 
-    this.rules = ruls; // for err mes get type
+    this.rules = [{name: name, rules: ruls}]; // for err mes get type
     this.name = name; // for get param value from conditions rule
 
     ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
