@@ -1,10 +1,40 @@
 import _ from 'lodash';
 import Validator from 'Validator';
 import messages from "Validator/src/messages";
+import dot from "dot-object";
 
 messages.empty_url = messages.url;
 
 class ValidatorExt extends Validator{
+  setData(data) {
+    this.data = dot.dot(data);
+  }
+  getValue(name) {
+    if(_.includes(name, '*')){
+      let matches = ('string' == typeof this.name) ? this.name.matchAll(/\[([0-9]+)\]/g) : [];
+      let params = [];
+      for(let i of matches)
+        params.push(i[0]);
+
+      for(let i of params)
+        name = name.replace(/(\.\*)/, i);
+
+      if ('undefined' !== typeof this.data[name])
+        return this.data[name];
+
+    } else if(_.includes(this.name, '.')){
+      let p = this.name.split('.');
+      p.pop();
+      p = p.join('.')+'.'+name;
+      if ('undefined' !== typeof this.data[p])
+        return this.data[p];
+    }
+
+    if ('undefined' === typeof this.data[name])
+      return '';
+
+    return this.data[name];
+  }
   getMessage(name, rule) {
     // 1) return custom message if defined
     let msg = this.getCustomMessage(name, rule);
@@ -24,6 +54,7 @@ class ValidatorExt extends Validator{
     return typeof msg === 'undefined' ? '' : msg;
   }
   validate(name, value, rule) {
+    let v = this.getValue(name); // for test for now
     let method = this.findRuleMethod(rule);
 
     // return method.apply(this, [name, value, rule.params])
@@ -35,7 +66,10 @@ class ValidatorExt extends Validator{
     value = ('undefined' === typeof value) ? '' : value;
 
     let ruls = this.parseItemRules(rules);
+
     this.rules = ruls; // for err mes get type
+    this.name = name; // for get param value from conditions rule
+
     ruls.filter(rule => rule.name !== 'Nullable').forEach((rule) => { // [{name:CamelCaseName, params:[]},...]
       let r = this.validate(name, value, rule);
       res = res == true ? r : res;
@@ -190,7 +224,7 @@ const Validation = {
             )),
             ('object' == typeof this.customRules[i] && this.customRules[i].hasOwnProperty('message')) ?
               this.customRules[i].message : ''
-            );
+          );
     }
 
     return new Promise((resolve, reject) => {
@@ -215,24 +249,64 @@ const Validation = {
     });
   },
 
-  checkRules(att, val, rules, fields) {
+  objCheckRules(res, err, att, val, rules, fields, objErr) {
+    let {r, e} = this.checkRules(att, val, rules, fields, objErr);
+    res = res == true ? r : res;
+    if (false == r){
+      if('object' == this.errorFormat || objErr) {
+        if('object' != typeof err)
+          err = {};
+        err[rule] = e;
+      } else{
+        let mes = ('simple' == this.errorFormat) ? e : rule + ': ' + e;
+        err += ('' == err ? '' : ' & ') + mes;
+      }
+    }
+    return {r: res, e: err};
+  },
+  simpleCheckRules(res, err, att, val, rules, fields){
+    if('ext' == this.lib){
+      let {r, e} = this.validator.checkRules(att, val, rules, fields);
+      res = res == true ? r : res;
+      if (false == r)
+        err += ('' == err ? '' : '; ') + e;
+    } else {
+      let ruls = rules.split('|');
+      for (let i in ruls) {
+        let rule = ruls[i].split(':');
+        if ('' == rule[0]) {
+          console.warn('Validation: you have empty validation rules.');
+          break;
+        }
+        if (this.rules.hasOwnProperty(rule[0])) {
+          let r = this.rules[rule[0]](att, val, rule[1], fields, path);
+          res = res == true ? r : res;
+          if (false == r)
+            err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
+        } else console.error("Validation: I don't know about " + rule[0] + " rule...");
+      }
+    }
+
+    return {r: res, e: err};
+  },
+
+  checkRules(att, val, rules, fields, objErr) {
     let res = true;
     let err = '';
     if ('object' == typeof rules) {
       for (let rule in rules) {
-        if (val.hasOwnProperty(rule)) {
-          let {r, e} = this.checkRules(att, val[rule], rules[rule], fields);
-          res = res == true ? r : res;
-          if (false == r){
-            if('object' == this.errorFormat) {
-              if('object' != typeof err)
-                err = {};
-              err[rule] = e;
-            } else{
-              let mes = ('simple' == this.errorFormat) ? e : rule + ': ' + e;
-              err += ('' == err ? '' : ' & ') + mes;
-            }
+        if('*' == rule && Array.isArray(val)){
+          if('object' != typeof err)
+            err = {};
+          for(let i in val){
+            let {r, e} = this.objCheckRules(res, false, att+'['+i+']', val[i], rules[rule], fields, true);
+            res = r;
+            err[i] = e;
           }
+        } else if (val.hasOwnProperty(rule)) {
+          let {r, e} = this.objCheckRules(res, err, att+'.'+rule, val[rule], rules[rule], fields, objErr);
+          res = r;
+          err = e;
         } else console.error('Validation: rules describe another object, this hasn\'t property for this rule');
       }
     } else if ('function' == typeof rules) {
@@ -241,28 +315,11 @@ const Validation = {
       if (false == r)
         err += ('' == err ? '' : '; ') + e;
     } else {
-      if('ext' == this.lib){
-        let {r, e} = this.validator.checkRules(att, val, rules, fields);
-        res = res == true ? r : res;
-        if (false == r)
-          err += ('' == err ? '' : '; ') + e;
-      } else {
-        let ruls = rules.split('|');
-        for (let i in ruls) {
-          let rule = ruls[i].split(':');
-          if ('' == rule[0]) {
-            console.warn('Validation: you have empty validation rules.');
-            break;
-          }
-          if (this.rules.hasOwnProperty(rule[0])) {
-            let r = this.rules[rule[0]](att, val, rule[1], fields);
-            res = res == true ? r : res;
-            if (false == r)
-              err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
-          } else console.error("Validation: I don't know about " + rule[0] + " rule...");
-        }
-      }
+      let {r, e} = this.simpleCheckRules(res, err, att, val, rules, fields);
+      res = r;
+      err = e;
     }
+
     let shoultUncompres = false
     if('object' == typeof err) {
       err = JSON.stringify(err);
@@ -285,7 +342,11 @@ const Validation = {
   filter(att, val, filters, fields) {
     if ('object' == typeof filters) {
       for (let filter in filters) {
-        if (val.hasOwnProperty(filter)) {
+        if('*' == filter && Array.isArray(val)){
+          for(let i in val){
+            val[i] = this.filter(att, val[i], filters[filter], fields);
+          }
+        } else if (val.hasOwnProperty(filter)) {
           val[filter] = this.filter(att, val[filter], filters[filter], fields);
         } else console.error('Validation: filter describe another object, this hasn\'t property for this filter');
       }

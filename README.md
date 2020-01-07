@@ -169,9 +169,39 @@ Vue.use({
     * form: {
     *    _name_: {
     *         val: '', // use this for v-model for form field
-    *         rules: 'require|in:1,2,3,4,5,6',
+    *         rules: 'required|in:1,2,3,4,5,6',
     *         filters: 'trim',
     *         error: false, // use this for paste error massage where you want
+    *     }
+    *    _name2_: {
+    *         val: [
+    *           {
+    *             f1: '',
+    *             f2: '',
+    *             ...
+    *           },
+    *           ...
+    *         ], // use this for v-model for form field
+    *         rules: {
+    *           '*':{
+    *             f1:'required|in:1,2,3,4,5,6',
+    *             f2:'required_if:_name2_.*.f1,2|in:1,2,3,4,5,6|',
+    *             f3:'required_if:f1,1|in:1,2,3,4,5,6|',
+    *           }
+    *         }'require|in:1,2,3,4,5,6',
+    *         filters: {
+    *           *: {
+    *             f1: 'trim',
+    *             f2: 'trim'
+    *           }
+    *         },
+    *         error: [
+    *           {
+    *             f1: false,
+    *             f2: false
+    *           }, 
+    *           ...
+    *         ], // use this for paste error massage where you want
     *     }
     * }
     * 

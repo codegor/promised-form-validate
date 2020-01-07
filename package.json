@@ -1,6 +1,6 @@
 {
   "name": "promised-form-validate",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Simple promised form validation. Simply set var for form definition and run validate method and if all ok in then you continue. With rules like Laravel have!",
   "main": "Validation.js",
   "scripts": {
@@ -28,6 +28,7 @@
   "homepage": "https://github.com/codegor/promised-form-validate#readme",
   "dependencies": {
     "Validator": "1.0.8",
+    "dot-object": "^2.1.2",
     "lodash": "^4.17.15"
   }
 }
