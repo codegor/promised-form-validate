@@ -282,7 +282,7 @@ const Validation = {
           break;
         }
         if (this.rules.hasOwnProperty(rule[0])) {
-          let r = this.rules[rule[0]](att, val, rule[1], fields, path);
+          let r = this.rules[rule[0]](att, val, rule[1], fields);
           res = res == true ? r : res;
           if (false == r)
             err += ('' == err ? '' : '; ') + this.rules_mess[rule[0]].replace(new RegExp('%f_param%', "g"), rule[1]);
