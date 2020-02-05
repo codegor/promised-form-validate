@@ -8,7 +8,8 @@ messages.required_if_complex = messages.required_if;
 
 class ValidatorExt extends Validator{
   setData(data) {
-    this.data = dot.dot(data);
+    this.data = data;
+    this.dataDot = dot.dot(data);
   }
   getValue(name) {
     if(_.includes(name, '*')){
@@ -20,15 +21,15 @@ class ValidatorExt extends Validator{
       for(let i of params)
         name = name.replace(/(\.\*)/, i);
 
-      if ('undefined' !== typeof this.data[name])
-        return this.data[name];
+      if ('undefined' !== typeof this.dataDot[name])
+        return this.dataDot[name];
 
     } else if(_.includes(this.name, '.')){
       let p = this.name.split('.');
       p.pop();
       p = p.join('.')+'.'+name;
-      if ('undefined' !== typeof this.data[p])
-        return this.data[p];
+      if ('undefined' !== typeof this.dataDot[p])
+        return this.dataDot[p];
     }
 
     if ('undefined' === typeof this.data[name])
