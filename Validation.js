@@ -109,6 +109,10 @@ class ValidatorExt extends Validator{
 
     return true;
   }
+
+  replaceRequiredIfComplex(msg, name, rule, params) {
+    return this.replaceRequiredIf(msg, name, rule, params);
+  }
 }
 
 const help = {
