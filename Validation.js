@@ -4,6 +4,7 @@ import messages from "Validator/src/messages";
 import dot from "dot-object";
 
 messages.empty_url = messages.url;
+messages.required_if_complex = messages.required_if;
 
 class ValidatorExt extends Validator{
   setData(data) {
@@ -89,6 +90,23 @@ class ValidatorExt extends Validator{
     }
 
     return false;
+  }
+
+  validateRequiredIfComplex(name, value, params) {
+    this.requireParameterCount(2, params, 'required_if');
+
+    let data = this.getValue(params[0]);
+    if (typeof data === 'boolean') {
+      data = data.toString();
+    }
+
+    let values = params.slice(1);
+
+    if (values.some(r=> data.includes(r))) {
+      return this.validateRequired(name, value);
+    }
+
+    return true;
   }
 }
 
