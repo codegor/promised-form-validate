@@ -130,7 +130,7 @@ const help = {
       object(val, param){
         if(null === val)
           return fn(val, param);
-        else if(val.hasOwnProperty('length'))
+        else if(val.hasOwnProperty && val.hasOwnProperty('length'))
           return fn(val.length, param);
         else
           return fn(Object.getOwnPropertyNames(val).length, param);
@@ -242,22 +242,22 @@ const Validation = {
         for(let i in this.customRules)
           this.validator.extend(i,
             ('function' == typeof this.customRules[i] ? this.customRules[i] : (
-              'object' == typeof this.customRules[i] && this.customRules[i].hasOwnProperty('handle') ?
+              'object' == typeof this.customRules[i] && this.customRules[i] && this.customRules[i].hasOwnProperty('handle') ?
                 this.customRules[i].handle : () => {console.log('RULE ERROR, should be or function of object {handle(){}, message}', i, this.customRules[i])}
             )),
-            ('object' == typeof this.customRules[i] && this.customRules[i].hasOwnProperty('message')) ?
+            ('object' == typeof this.customRules[i] && this.customRules[i] && this.customRules[i].hasOwnProperty('message')) ?
               this.customRules[i].message : ''
           );
     }
 
     return new Promise((resolve, reject) => {
       let res = true;
-      if ('object' == typeof fields) {
+      if (fields && 'object' == typeof fields) {
         for (let att in fields) {
-          if (fields[att].hasOwnProperty('error'))
+          if (fields[att] && fields[att].hasOwnProperty('error'))
             fields[att].error = false;
 
-          if ('object' == typeof fields[att] && fields[att].hasOwnProperty('rules') && fields[att].hasOwnProperty('val')) {
+          if ('object' == typeof fields[att] && fields[att] && fields[att].hasOwnProperty('rules') && fields[att].hasOwnProperty('val')) {
             let {r, e} = obj.checkRules(att, fields[att].val, fields[att].rules, fields);
             res = res == true ? r : res;
             if (false == r)
@@ -319,7 +319,7 @@ const Validation = {
   checkRules(att, val, rules, fields, objErr) {
     let res = true;
     let err = '';
-    if ('object' == typeof rules) {
+    if (rules && 'object' == typeof rules) {
       for (let rule in rules) {
         if('*' == rule && Array.isArray(val)){
           if('object' != typeof err)
@@ -329,7 +329,7 @@ const Validation = {
             res = r;
             err[i] = e;
           }
-        } else if (val.hasOwnProperty(rule)) {
+        } else if (val && val.hasOwnProperty && val.hasOwnProperty(rule)) {
           let {r, e} = this.objCheckRules(res, err, att+'.'+rule, val[rule], rules[rule], fields, objErr, rule);
           res = r;
           err = e;
@@ -348,7 +348,7 @@ const Validation = {
       console.error('Validation rule type is unknown for me...', typeof rules, rules, att, val, fields);
 
     let shoultUncompres = false
-    if('object' == typeof err) {
+    if(err && 'object' == typeof err) {
       err = JSON.stringify(err);
       shoultUncompres = true;
     }
@@ -359,7 +359,7 @@ const Validation = {
     _.each(this.mess_vars, v => {
       if('name' == v)
         err = err.replace(new RegExp('%f_'+v+'%', "g"), att);
-      else if(fields[attFirst].hasOwnProperty(v))
+      else if(fields[attFirst] && fields[attFirst].hasOwnProperty && fields[attFirst].hasOwnProperty(v))
           err = err.replace(new RegExp('%f_'+v+'%', "g"), fields[attFirst][v]);
     });
 
@@ -370,13 +370,13 @@ const Validation = {
   },
 
   filter(att, val, filters, fields) {
-    if ('object' == typeof filters) {
+    if (filters && 'object' == typeof filters) {
       for (let filter in filters) {
         if('*' == filter && Array.isArray(val)){
           for(let i in val){
             val[i] = this.filter(att, val[i], filters[filter], fields);
           }
-        } else if (val.hasOwnProperty(filter)) {
+        } else if (val && val.hasOwnProperty && val.hasOwnProperty(filter)) {
           val[filter] = this.filter(att, val[filter], filters[filter], fields);
         } else console.error('Validation: filter describe another object, this hasn\'t property for this filter');
       }
@@ -400,10 +400,10 @@ const Validation = {
 
     let res = {};
     for (let att in fields) {
-      if ('object' == typeof fields[att] && fields[att].hasOwnProperty('filters') && fields[att].hasOwnProperty('val'))
+      if ('object' == typeof fields[att] && fields[att] && fields[att].hasOwnProperty('filters') && fields[att].hasOwnProperty('val'))
         fields[att].val = this.filter(att, fields[att].val, fields[att].filters, fields);
 
-      if ('object' == typeof fields[att] && fields[att].hasOwnProperty('val'))
+      if ('object' == typeof fields[att] && fields[att] && fields[att].hasOwnProperty('val'))
         res[att] = fields[att].val;
       else
         res[att] = fields[att];
