@@ -322,7 +322,7 @@ const Validation = {
     if (rules && 'object' == typeof rules) {
       for (let rule in rules) {
         if('@' == rule && Array.isArray(val)) {
-          let {r, e} = this.simpleCheckRules(res, err, att, val, rules, fields);
+          let {r, e} = this.simpleCheckRules(res, err, att, val, rules[rule], fields);
           res = r;
           err = e;
         } else if('*' == rule && Array.isArray(val)){
