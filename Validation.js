@@ -324,10 +324,10 @@ const Validation = {
         if('@' == rule && Array.isArray(val)) {
           let {r, e} = this.simpleCheckRules(res, err, att, val, rules[rule], fields);
           res = r;
-          err = e;
+          err = err && {error: err, '@': e} || {'@': e};
         } else if('*' == rule && Array.isArray(val)){
           if('object' != typeof err)
-            err = {};
+            err = {error: err};
           for(let i in val){
             let {r, e} = this.objCheckRules(res, false, att+'['+i+']', val[i], rules[rule], fields, true, rule);
             res = r;
