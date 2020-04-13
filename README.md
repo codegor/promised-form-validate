@@ -183,6 +183,7 @@ Vue.use({
     *           ...
     *         ], // use this for v-model for form field
     *         rules: {
+    *           '@': 'required', //rules for field itself
     *           '*':{
     *             f1:'required|in:1,2,3,4,5,6',
     *             f2:'required_if:_name2_.*.f1,2|in:1,2,3,4,5,6|',

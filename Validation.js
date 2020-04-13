@@ -321,7 +321,11 @@ const Validation = {
     let err = '';
     if (rules && 'object' == typeof rules) {
       for (let rule in rules) {
-        if('*' == rule && Array.isArray(val)){
+        if('@' == rule && Array.isArray(val)) {
+          let {r, e} = this.simpleCheckRules(res, err, att, val, rules, fields);
+          res = r;
+          err = e;
+        } else if('*' == rule && Array.isArray(val)){
           if('object' != typeof err)
             err = {};
           for(let i in val){
