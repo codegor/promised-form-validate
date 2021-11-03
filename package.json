@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/codegor/promised-form-validate#readme",
   "dependencies": {
-    "Validator": "1.0.8",
+    "Validator": "1.1.4",
     "dot-object": "^2.1.2",
     "lodash": "^4.17.15"
   }
